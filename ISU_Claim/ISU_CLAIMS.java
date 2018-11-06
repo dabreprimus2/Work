@@ -140,7 +140,6 @@ public class ISU_CLAIMS{
 		props = new Properties();//get DB info
 		try {
 			if (hostname.equals("PRIMUS")) { 
-				System.out.println("Here");
 				props.load(new FileInputStream("C:/Users/ROB/git/Hi-Tech-Health/mydb2.properties"));}
 			else
 				props.load(new FileInputStream("/java/mydb2.properties"));
@@ -150,8 +149,21 @@ public class ISU_CLAIMS{
 			e1.printStackTrace();
 		}
 		
+		final String DRIVER = "com.ibm.as400.access.AS400JDBCDriver"; 
+		final String URL = "jdbc:as400://"+props.getProperty("local_system").trim()+"/"+LIB+";naming=system";//jdbc:db2
 
-		readXLS_withblanks(out,false,0,6);
+		try {
+			Class.forName(DRIVER); //making the connection
+			conn = DriverManager.getConnection(URL, props.getProperty("userId").trim(), props.getProperty("password").trim()); 
+
+			conn.createStatement().execute("CREATE ALIAS QTEMP/GRPMS2_"+CLIENT+" FOR "+LIB+"/GRPMS2("+CLIENT+")");
+			System.out.println("Connected to database");
+		} catch (ClassNotFoundException e) {e.printStackTrace();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} 
+		
+		readXLS_withblanks(out,true,0,6);
 
 
 
@@ -234,7 +246,7 @@ public class ISU_CLAIMS{
 			@SuppressWarnings("resource")
 			BufferedReader bufferreader = new BufferedReader(new FileReader("C:/Users/ROB/Desktop/Primus/ISU_Claims/BCBSNE-BlueFlex-ClaimsAnalysisSummaryFile-20181023.txt"));
 		
-			String next, line = bufferreader.readLine();
+			String next, line = "";
 			
 			String NB_Group="";
 			String Company="";
@@ -251,17 +263,7 @@ public class ISU_CLAIMS{
 				Amount1=line.substring(63,78).trim(); //15
 				Amount2=line.substring(78,93).trim(); //5
 				Total=line.substring(93,108).trim(); //5
-				System.out.println("Group :"+NB_Group);
-				System.out.println("Company :"+Company);
-				System.out.println("date :"+date);
-				System.out.println("Amount1 :"+Amount1);
-				System.out.println("Amount2 :"+Amount2);
-				System.out.println("Total :"+Total);
-				
-				
-				
-				
-				
+								
 				row6 = spreadsheet.createRow(i);
 
 				Cell cell0 = row6.createCell(0);
@@ -285,25 +287,28 @@ public class ISU_CLAIMS{
 					cell0.setCellStyle(style1);
 				}
 			
-			/*	int found = Integer.parseInt(DBquery("SELECT COUNT(*) FROM QTEMP/GRPMS2_"+CLIENT+" WHERE G2ALID='"+NB_Group+"' OR G2RPNO='"+NB_Group+"' ","GRPMS2"));
+				int found = Integer.parseInt(DBquery("SELECT COUNT(*) FROM QTEMP/GRPMS2_"+CLIENT+" WHERE G2ALID='"+NB_Group+"' OR G2RPNO='"+NB_Group+"' ","GRPMS2"));
 				
 				if (found==0)
-				{
+				{	
 					errorfound=true;
 					errorcount++;
+					System.out.println(errorcount++);
 					cell0.setCellStyle(style1);
-				}*/
+				}
 				
 				if (!isDateValid(date))
-				{
+				{	
 					errorfound=true;
 					errorcount++;
+					System.out.println(errorcount++);
 					cell2.setCellStyle(style2);
 				}
-				if (Total != Amount1 + Amount2)
+				if (!isAmtVal(Amount1,Amount2,Total))
 				{
 					errorfound=true;
 					errorcount++;
+					System.out.println(errorcount++);
 					cell5.setCellStyle(style3);
 				}
 			}
@@ -316,7 +321,21 @@ public class ISU_CLAIMS{
 		System.out.println("Writesheet.xlsx written successfully");
 		
 	}
+	private static boolean isAmtVal(String val1, String val2,String val3)
+	{
+		int a=Integer.parseInt(val1);
+		int b=Integer.parseInt(val2);
+		int c=Integer.parseInt(val3);
+		
+		System.out.println(a);
+		
+		return true;
+	}
+	
 	private static boolean isDateValid(String val){
+		if(val.equals("")) {return false;}
+		else
+		{
 		Calendar c = Calendar.getInstance();
 		int year = c.get(Calendar.YEAR);
 		
@@ -328,15 +347,15 @@ public class ISU_CLAIMS{
 		int yearIn=0;
 		int monthIn=0;
 		try {
-			year1 = val.substring(2,3);
-			yearIn=Integer.parseInt(val);
+			year1 = val.substring(2,4);
+			yearIn=Integer.parseInt(year1);
 
 		} catch (Exception e) {
 
 			//e.printStackTrace();
 		}
 		if(year<yearIn){return false;}
-		else {return true;}
+		else {return true;}}
 	}
 	private static String DBquery(String query, String file){	
 		Statement stmt = null;
@@ -345,7 +364,6 @@ public class ISU_CLAIMS{
 		try {
 			stmt = conn.createStatement();
 			ResultSet rs = stmt.executeQuery(query);
-			System.out.println(rs);
 			while (rs.next()) 
 				result = rs.getString(1);
 
