@@ -69,6 +69,11 @@ public class FileConversionXLSToXLXS {
 	private static boolean errorfound=false;
 	private static String LIB;
 	private static String CLIENT;
+	SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+	Date todayfl = Calendar.getInstance().getTime();
+	String datefl=sdf.format(todayfl);
+
+//Call HTHOBJV1/VETELG(‘RH1’) for the CL 
 
 	static Properties props = new Properties();//get DB info
 	public static void main(String[] args) throws ParseException, IOException {
@@ -77,7 +82,7 @@ public class FileConversionXLSToXLXS {
 		CLIENT="RH1";
 		connect();
 		FileConversionXLSToXLXS fileConversionXLSToXLXS = new FileConversionXLSToXLXS();
-		String xlsFilePath = "/hthjav1/RH1_Vet/inbound/TEST_W0621_20181023.xls";
+		String xlsFilePath = "/hthjav1/RH1_Vet/inbound/PROD_W0621_"+datefl+".xls";
 		String xlsxFilePath = fileConversionXLSToXLXS.convertXLS2XLSX(xlsFilePath);
 		out=new File(xlsxFilePath);
 		readXLS_withblanks(out,true,0,66);
@@ -140,7 +145,7 @@ public class FileConversionXLSToXLXS {
 		// For storing data into CSV files
 		ArrayList<String[]> data = new ArrayList<String[]>();
 
-		XSSFWorkbook workbook = new XSSFWorkbook(new FileInputStream("/hthjav1/RH1_Vet/inbound/TEST_W0621_20181023.xlsx")); 
+		XSSFWorkbook workbook = new XSSFWorkbook(new FileInputStream("/hthjav1/RH1_Vet/inbound/PROD_W0621_"+datefl+".xlsx")); 
 		XSSFSheet spreadsheet = workbook.getSheet("Sheet1");// main sheet
        // XSSFSheet sheet2 = workbook.createSheet("Sheet2");//color coding sheet
 		String[] headers = new String[] {"Emp_SSN", "First_Name", "Last_Name", "MI",	"Birth_Date","Gender","Relationship","Address_1","Address_2","City","State","Zip code","Effective date",
@@ -151,31 +156,7 @@ public class FileConversionXLSToXLXS {
 				"Coverage_Tier_Desc","Reson_Code","Reason_Desc","Provider_Code","Monthly_Premium","PerPay_Emp_Cost","Total_Annual_Volume","Approved_Annual_Volume","Volume_Factor",
 				"Enroll_Comment", "Emp_Pay_Frequency","Person_System_Number"};
 		Row row67 = spreadsheet.createRow(0);
-	/*	// to write in sheet2
-		Map<String, Object[]> data2 = new TreeMap<String, Object[]>();
-		data2.put("1",new Object[] {"indicates the error with the SSN"});
-		data2.put("2",new Object[] {"indicates the error with the gender field"});
-		data2.put("3",new Object[] {"indicates the error with the gender field"});
-		data2.put("4",new Object[] {"indicates the error with the Zip code or State field"});
-		data2.put("5",new Object[] {"indicates the size of the data in corresponding field is greater than expected"});
-		
-		Set<String> keyset = data2.keySet(); 
-        int rownum = 0; 
-        for (String key : keyset) { 
-            // this creates a new row in the sheet 
-            Row row100 = sheet2.createRow(rownum++); 
-            Object[] objArr = data2.get(key); 
-            int cellnum = 0; 
-            for (Object obj : objArr) { 
-                // this line creates a cell in the next column of that row 
-                Cell cell100 = row100.createCell(cellnum++); 
-                if (obj instanceof String) 
-                    cell100.setCellValue((String)obj); 
-                else if (obj instanceof Integer) 
-                    cell100.setCellValue((Integer)obj); 
-            } 
-		
-        }*/
+
 		for (int rn=0; rn<headers.length; rn++){
 			row67.createCell(rn).setCellValue(headers[rn]);
 		}
@@ -539,10 +520,10 @@ public class FileConversionXLSToXLXS {
 	} catch (Exception ioe) {ioe.printStackTrace();}
 
 		//Write the workbook in file system
-		FileOutputStream outfile = new FileOutputStream(new File("/hthjav1/RH1_Vet/inbound/TEST_W0621_20181023.xlsx"));
+		FileOutputStream outfile = new FileOutputStream(new File("/hthjav1/RH1_Vet/inbound/PROD_W0621_"+datefl+".xlsx"));
 		workbook.write(outfile);
 		outfile.close();
-		emailfile=new File("/hthjav1/RH1_Vet/inbound/TEST_W0621_20181023.xlsx");
+		emailfile=new File("/hthjav1/RH1_Vet/inbound/PROD_W0621_"+datefl+".xlsx");
 		System.out.println("Writesheet.xlsx written successfully");
 
 		System.out.println("File Compiled with "+errorcount+" errors");
@@ -637,16 +618,6 @@ public class FileConversionXLSToXLXS {
 			}			
 
 
-			/*System.out.println("INSERT INTO CBLIB/EVERELG (RSSN,RFNAM,RLNAM,RMI,RDOB,RSEX,RREL,RADD1,RADD2,RCITY,RSTATE,RZIP,REFFD,REMPH,REMPRE,RTERMD,RLASTD,REMPOC,RHPW,REMPID,REMPXID,REDEPRT,RLCTN,RAREA,"
-					+ "RPAYCL,RUDCL1,RUDCL2,RUDCL3,RUDCL4,RUDCL5,RUDFLD,RUDFLD1,RUDFLD2,RUDFLD3,RUDFLD4,RUDFLD5,RSALRY,RSALRY2,RFLEX,RDEMGR,RBEN,RPRODC,RPRODD,RGRPNO,RBENCOD,RACTCOD,RACTDES,REFF2,RACTDTE,"
-					+ "RTERMD2,REVTD,RSIGND,RCHGED,RCOV,RCOVDS,RRNCDE,RRNDES,RPROVC,RMNPRM,RPPEC,RANVOL,RAPVOL,RVOLFT,RENCOM,REMPFQ,RPSN) values('"+line[0]+"','"+line[1]+"','"+line[2]+"','"+line[3]+
-					"',"+line[4]+",'"+line[5]+"','"+line[6]+"','"+line[7]+"','"+line[8]+"','"+line[9]+"','"+line[10]+"','"+line[11]+"',"+line[12]+","+line[13]+","+line[14]+","+line[15]+
-					","+line[16]+",'"+line[17]+"',"+line[18]+",'"+line[19]+"','"+line[20]+"','"+line[21]+"','"+line[22]+"','"+line[23]+"','"+line[24]+"','"+line[25]+"','"+line[26]+"','"
-					+line[27]+"','"+line[28]+"','"+line[29]+"','"+line[30]+"','"+line[31]+"','"+line[32]+"','"+line[33]+"','"+line[34]+"','"+line[35]+"',"+line[36]+","
-					+line[37]+","+line[38]+",'"+line[39]+"',"+line[40]+",'"+line[41]+"','"+line[42]+"','"+line[43]+"','"+line[44]+"','"+line[45]+"','"+line[46]+"',"
-					+line[47]+","+line[48]+","+line[49]+","+line[50]+","+line[51]+","+line[52]+",'"+line[53]+"','"+line[54]+"','"+line[55]+"','"
-					+line[56]+"','"+line[57]+"','"+line[58]+"','"+line[59]+"','"+line[60]+"','"+line[61]+"','"+line[62]+"','"+line[63]+"',"
-					+ "'"+line[64]+"','"+line[65]+"')");*/
 
 			DBinsert("INSERT INTO "+LIB+"/VETELGHST (RSSN,RFNAM,RLNAM,RMI,RDOB,RSEX,RREL,RADD1,RADD2,RCITY,RSTATE,RZIP,REFFD,REMPH,REMPRE,RTERMD,RLASTD,REMPOC,RHPW,REMPID,REMPXID,REDEPRT,RLCTN,RAREA,"
 					+ "RPAYCL,RUDCL1,RUDCL2,RUDCL3,RUDCL4,RUDCL5,RUDFLD,RUDFLD1,RUDFLD2,RUDFLD3,RUDFLD4,RUDFLD5,RSALRY,RSALRY2,RFLEX,RDEMGR,RBEN,RPRODC,RPRODD,RGRPNO,RBENCOD,RACTCOD,RACTDES,REFF2,RACTDTE,"
@@ -804,7 +775,7 @@ public class FileConversionXLSToXLXS {
 		props = new Properties();//get DB info
 		try {
 			if (hostname.equals("PRIMUS")) 
-				props.load(new FileInputStream("C:/Users/ROB/git/Hi-Tech-Health/mydb2.properties"));
+				props.load(new FileInputStream("C:/Users/Primus/git/Hi-Tech-Health/mydb2.properties"));
 			else
 				props.load(new FileInputStream("/java/mydb2.properties"));
 		} catch (FileNotFoundException e1) {
@@ -976,42 +947,60 @@ public class FileConversionXLSToXLXS {
 		String date=sdf.format(today);
 
 
-		Properties props = new Properties();
+		Properties propss = new Properties();
 
-		props.put("mail.smtp.auth", "true");
+		propss.put("mail.smtp.auth", "true");
 
-		props.put("mail.smtp.starttls.enable", "true");
+		propss.put("mail.smtp.starttls.enable", "true");
 
-		props.put("mail.smtp.host", "secure.emailsrvr.com");
+		propss.put("mail.smtp.host", "secure.emailsrvr.com");
 
-		props.put("mail.smtp.port", "587");
+		propss.put("mail.smtp.port", "587");
 
-		props.put("mail.debug", "false");
+		propss.put("mail.debug", "false");
 
-		Session session = Session.getInstance(props,
+		Session session = Session.getInstance(propss,
 
 				new Authenticator()
 		{
 			protected PasswordAuthentication getPasswordAuthentication() 
 			{
-				return new PasswordAuthentication("cbeyer@hi-techhealth.com", "14752369Cb");
+				return new PasswordAuthentication(props.getProperty("EMAILuserId").trim()+"@hi-techhealth.com", props.getProperty("EMAILpassword").trim());
 			}
 		});
 
 		try 
 		{
-			//String EMAIL = Findemail("SELECT CAEML1 FROM QTEMP/BLOCK_"+CLIENT);
+
+			PrintWriter writer=null;
+
+			File f=new File("Error_Log.txt");
+
+			if (!f.exists())
+
+				f.createNewFile();
+
+			writer = new PrintWriter(f);
+
+			writer.print(SB.toString());
+
+
+			writer.close();
+
+			
+
 			Multipart multipart = new MimeMultipart();
+
 			MimeMessage msg = new MimeMessage(session);
 
 			MimeBodyPart textPart = new MimeBodyPart();
 
 			MimeBodyPart messageBodyPart = new MimeBodyPart(); 
 
-			msg.setFrom(new InternetAddress("support@hi-techhealth.com"));
+			msg.setFrom(new InternetAddress("no-reply@hi-techhealth.com"));
 
-			String recipientEmail = ("cbeyer@hi-techhealth.com, jeller@hi-techhealth.com");//twalsh@hi-techhealth.com
-			String ccEmail=("cbeyer@hi-techhealth.com, jeller@hi-techhealth.com"); //twalsh@hi-techhealth.com
+			String recipientEmail = ("twalsh@hi-techhealth.com, cbeyer@hi-techhealth.com, jeller@hi-techhealth.com");//twalsh@hi-techhealth.com
+			String ccEmail=("twalsh@hi-techhealth.com, cbeyer@hi-techhealth.com, jeller@hi-techhealth.com"); //twalsh@hi-techhealth.com
 			String[] recipientList = recipientEmail.split(",");
 			InternetAddress[] recipientAddress = new InternetAddress[recipientList.length];
 			int counter = 0;
@@ -1033,21 +1022,15 @@ public class FileConversionXLSToXLXS {
 				msg.setRecipients(Message.RecipientType.BCC, CCAddress);
 			}
 
-
-
-			msg.setSubject("File Upload");
+			msg.setSubject("Veterinary file upload status");
 
 			msg.setSentDate(new Date());
-
-
 
 
 			MimeBodyPart messageBodyPart3 = new MimeBodyPart();
 			DataSource source3 = new FileDataSource(emailfile);
 			messageBodyPart3.setDataHandler( new DataHandler(source3));
-			messageBodyPart3.setFileName("Errors.xlsx");
-
-			//Second Attachment
+			messageBodyPart3.setFileName("Errors_"+date+".xlsx");
 
 			String textContent = "";
 
@@ -1088,6 +1071,12 @@ public class FileConversionXLSToXLXS {
 		{
 
 			mex.printStackTrace();
+		} 
+
+		catch (IOException e1) {
+
+			e1.printStackTrace();
+
 		}
 		System.out.println("Program Closed");
 		System.exit(0);
